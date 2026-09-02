@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: core-tickets
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /checkout.html
+    envVars:
+      - key: NODE_ENV
+        value: production

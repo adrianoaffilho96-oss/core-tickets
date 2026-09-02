@@ -1,0 +1,6 @@
+node_modules/
+backend/festa.db
+backend/festa.db-shm
+backend/festa.db-wal
+.env
+.DS_Store
