@@ -12,4 +12,4 @@ const PORT=process.env.PORT||8000;
 app.use(cors()); app.use(express.json());
 app.use('/api',ticketsRoutes); app.use('/api',posRoutes); app.use('/api',backofficeRoutes); app.use('/api',barRoutes); app.use('/api',cardapioRoutes); app.use('/api',checkinRoutes);
 app.use(express.static(path.join(__dirname,'..','public')));
-app.listen(PORT,'0.0.0.0',()=>console.log(`Core Tickets rodando na porta ${PORT}`));
+app.listen(PORT,'0.0.0.0',()=>console.log(`Core X rodando na porta ${PORT}`));

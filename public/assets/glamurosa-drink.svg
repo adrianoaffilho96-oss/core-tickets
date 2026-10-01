@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520" role="img" aria-labelledby="title desc">
+  <title id="title">Drink da Glamurosa</title>
+  <desc id="desc">Ilustracao estilizada de bebida em fundo rosa.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#fbe5ee"/>
+      <stop offset="100%" stop-color="#f5f1f5"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="520" fill="url(#bg)"/>
+  <rect x="110" y="150" width="580" height="260" rx="26" fill="#fff6fb" stroke="#c85d88" stroke-width="4"/>
+  <path d="M280 170h240l-38 170c-8 38-40 64-78 64s-70-26-78-64z" fill="#f9b8cf"/>
+  <path d="M318 150h164v52H318z" fill="#f59ac2"/>
+  <path d="M350 270c32 18 68 18 100 0" fill="none" stroke="#9a2c55" stroke-width="10" stroke-linecap="round"/>
+  <path d="M354 210c18 24 22 48 22 70" fill="none" stroke="#9a2c55" stroke-width="8" stroke-linecap="round"/>
+  <path d="M446 210c-18 24-22 48-22 70" fill="none" stroke="#9a2c55" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="200" cy="195" r="32" fill="#f4d1e0"/>
+  <circle cx="620" cy="195" r="34" fill="#f4d1e0"/>
+  <text x="400" y="410" text-anchor="middle" font-size="38" font-family="Arial, Helvetica, sans-serif" fill="#3d2230" font-weight="700">Drink da Glamurosa</text>
+</svg>

@@ -1,0 +1,15 @@
+{
+  "name": "core-tickets",
+  "version": "1.0.0",
+  "description": "Plataforma de ingressos e experiencias para o evento GLAMUROSA.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "sharp": "^0.35.5"
+  }
+}

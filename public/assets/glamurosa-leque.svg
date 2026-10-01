@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520" role="img" aria-labelledby="title desc">
+  <title id="title">Leque da Glamurosa</title>
+  <desc id="desc">Ilustracao stylized de um leque em fundo rosa.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#f9edf0"/>
+      <stop offset="100%" stop-color="#f3f2f1"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="520" fill="url(#bg)"/>
+  <rect x="120" y="150" width="560" height="260" rx="26" fill="#fff6fa" stroke="#c76594" stroke-width="4"/>
+  <path d="M280 340c0-120 110-170 120-170 10 0 120 50 120 170" fill="none" stroke="#e16b9f" stroke-width="18" stroke-linecap="round"/>
+  <path d="M320 170l-40 170h160l-40-170" fill="#ffe3f0" stroke="#c65b8a" stroke-width="4"/>
+  <path d="M400 180v150" stroke="#c65b8a" stroke-width="6"/>
+  <path d="M340 200c20 10 40 15 60 15 20 0 40-5 60-15" fill="none" stroke="#c65b8a" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="400" cy="172" r="12" fill="#f6c0d6"/>
+  <text x="400" y="410" text-anchor="middle" font-size="38" font-family="Arial, Helvetica, sans-serif" fill="#3d2230" font-weight="700">Leque da Glamurosa</text>
+</svg>

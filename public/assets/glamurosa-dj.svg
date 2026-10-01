@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520" role="img" aria-labelledby="title desc">
+  <title id="title">DJ da Glamurosa</title>
+  <desc id="desc">Ilustracao estilizada de um DJ em palco com fundo rosa.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#fbe7ef"/>
+      <stop offset="100%" stop-color="#f4edf1"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="520" fill="url(#bg)"/>
+  <circle cx="650" cy="120" r="90" fill="#ff8db5" opacity="0.22"/>
+  <circle cx="170" cy="120" r="110" fill="#f29ec8" opacity="0.2"/>
+  <rect x="120" y="150" width="560" height="260" rx="26" fill="#f7cedf" stroke="#d1557d" stroke-width="4"/>
+  <rect x="180" y="210" width="80" height="120" rx="12" fill="#2b1d26"/>
+  <rect x="270" y="190" width="90" height="140" rx="14" fill="#e65a8c"/>
+  <rect x="380" y="170" width="120" height="160" rx="18" fill="#fff3f8"/>
+  <circle cx="440" cy="250" r="42" fill="#f8b3b1"/>
+  <rect x="530" y="220" width="80" height="110" rx="12" fill="#2b1d26"/>
+  <path d="M210 250h30v60h-30zM240 220l35 35-35 35z" fill="#ffeff6"/>
+  <rect x="340" y="340" width="160" height="24" rx="12" fill="#f4a3c1"/>
+  <text x="400" y="410" text-anchor="middle" font-size="38" font-family="Arial, Helvetica, sans-serif" fill="#3d2230" font-weight="700">DJ da Glamurosa</text>
+</svg>

@@ -1,1 +1,199 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Core Tickets | GLAMUROSA</title><link rel="stylesheet" href="styles.css"></head><body><nav class="topnav public-nav"><a class="brand vyver-brand" href="checkout.html"><span class="brand-mark">♥</span><span>CORE <b>TICKETS</b></span></a><div><a href="#ingressos" class="active">Ingressos</a><a href="#experiencia">A experiencia</a><a href="#duvidas">Duvidas</a><a href="checkin.html">Ja tenho ingresso</a></div></nav><main><section class="event-hero"><div class="hero-copy"><p class="eyebrow">O coracao de cada experiencia</p><h1>GLAMUROSA.<br><em>Viva intensamente.</em></h1><p class="hero-lede">Uma noite feita para celebrar voce. Musica, beleza e encontros em uma experiencia inesquecivel no coracao de Sao Paulo.</p><div class="event-meta"><span>12 / 12</span><span>Sao Paulo · SP</span></div><a class="hero-link" href="#ingressos">Escolher meu ingresso <span>↘</span></a></div><div class="hero-ticket"><span class="ticket-top">CORE TICKETS / GLAMUROSA</span><strong>GLAM<br><i>UROSA</i></strong><span class="ticket-date">12 DEZ · SAO PAULO</span><span class="ticket-barcode">▌▌▌ ▌▌ ▌▌▌▌ ▌▌</span></div><div class="hero-stamp">♥<br>CORE</div></section><section class="buy-section" id="ingressos"><div class="section-heading"><div><p class="eyebrow">Garanta seu lugar</p><h2>Escolha como<br><em>quer viver</em></h2></div><span class="section-count">01 — 03</span></div><div class="ticket-layout"><div class="ticket-options"><div class="ticket-intro"><span>INGRESSOS DISPONIVEIS</span><small>Selecione uma opcao para continuar</small></div><label class="ticket-select-label">Seu ingresso<select id="type"></select></label><div class="ticket-list" id="ticketList" aria-label="Opcoes de ingresso"></div><div class="ticket-benefit"><span class="benefit-icon">✦</span><div><strong>Uma noite para lembrar</strong><small>Seu ingresso inclui acesso ao evento e carteira cashless digital.</small></div></div></div><div class="buyer-card"><div class="card-step"><span>02</span><div><p class="eyebrow">Seus dados</p><h3>Finalize sua compra</h3></div></div><form id="ticketForm" class="form-grid"><label class="full-width">Nome completo<input id="buyerName" required></label><label>E-mail<input id="buyerEmail" type="email"></label><label>CPF<input id="buyerCpf" required maxlength="14"></label><label class="full-width">Pagamento<select id="method"><option value="pix">Pix</option><option value="cartao">Cartao</option></select></label><div class="full-width"><button class="primary-button" type="submit">Continuar para pagamento <span>→</span></button></div></form><div id="ticketMsg"></div><small class="secure-note">Compra protegida · Voce recebera tudo no e-mail</small></div></div></section><section class="experience-band" id="experiencia"><div><p class="eyebrow">Mais que um ingresso</p><h2>Voce nao assiste.<br><em>Voce vive.</em></h2></div><p>Do primeiro som ao ultimo abraco, cada detalhe foi pensado para criar uma noite com a sua cara.</p></section><section class="event-gallery"><img src="assets/glamurosa-dj.jpeg" alt="DJ da Glamurosa"><img src="assets/glamurosa-girl.jpeg" alt="Convidada da Glamurosa"><img src="assets/glamurosa-drink.jpeg" alt="Drink da Glamurosa"><img src="assets/glamurosa-leque.jpeg" alt="Leque da Glamurosa"></section><section class="faq-section" id="duvidas"><p class="eyebrow">Antes de ir</p><h2>Duvidas frequentes</h2><details><summary>Como recebo meu ingresso?</summary><p>Depois do pagamento, sua carteira digital e QR code aparecem nesta pagina.</p></details><details><summary>Posso transferir meu ingresso?</summary><p>Sim, depois da confirmacao do pagamento.</p></details></section></main><script src="js/api.js"></script><script src="js/checkout.js"></script></body></html>
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Core X | GLAMUROSA</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .event-hero{display:grid;grid-template-columns:1.2fr 1.3fr;align-items:center;gap:32px;min-height:680px;padding:40px max(24px,calc((100% - 1200px)/2)) 18px;background:linear-gradient(180deg,#f8dfe8 0%,#f3e7eb 22%,#f9dfe8 100%);position:relative;overflow:hidden}
+      .event-hero::before{content:"";position:absolute;right:8%;top:50%;transform:translateY(-50%);width:min(38vw,520px);aspect-ratio:1;border-radius:50%;background:url("assets/quarteto-coracoes.png") center/cover no-repeat;box-shadow:0 18px 34px rgba(195,77,120,.16);z-index:0}
+      .event-hero::after{content:"";position:absolute;left:-120px;bottom:-140px;width:460px;height:460px;border-radius:50%;background:rgba(255,255,255,.12);border:2px solid rgba(230,110,160,.22)}
+      .hero-copy,.hero-visual{position:relative;z-index:1}
+      .site-brand{display:flex;align-items:center;width:110px;flex:0 0 auto;margin:0!important}
+      .site-brand img{display:block;width:100%;height:auto;max-height:34px;object-fit:contain}
+      .hero-copy{padding-left:8px;max-width:52%}
+      .hero-copy h1{font-size:clamp(3rem,5.2vw,7rem);line-height:.86;letter-spacing:-.06em;margin:12px 0 18px;font-weight:900}
+      .hero-copy h1 em{display:block;color:var(--core-red);font-style:normal;font-weight:900}
+      .hero-lede{max-width:560px;font-size:1.15rem;line-height:1.5;color:#4b2b32;font-weight:500}
+      .event-meta{display:flex;gap:22px;font-weight:900;letter-spacing:.04em;margin-top:18px;font-size:1.1rem;color:#3c2328}
+      .hero-actions{display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin-top:28px}
+      .hero-link,.primary-cta,.secondary-cta{display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;font-weight:800;border-radius:999px;transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease}
+      .hero-link{padding:0 0 10px;border-bottom:2px solid rgba(118,34,58,.65);color:#3a1d27}
+      .primary-cta{padding:14px 24px;background:linear-gradient(135deg,#d52236,#ff6c88);color:#fff;box-shadow:0 16px 28px rgba(213,34,54,.24);border:1px solid rgba(130,14,33,.2)}
+      .secondary-cta{padding:13px 20px;border:1px solid rgba(130,14,33,.25);background:rgba(255,255,255,.34);color:#461a25}
+      .nav-cta{margin-left:16px;padding:12px 18px;white-space:nowrap}
+      .primary-cta:hover,.secondary-cta:hover,.hero-link:hover{transform:translateY(-1px)}
+      .hero-visual{display:flex;align-items:flex-end;justify-content:center;min-height:520px}
+      .create-event-band{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:26px max(24px,calc((100% - 1120px)/2));margin:8px 0 0;background:rgba(255,255,255,.22);border-top:1px solid rgba(163,93,118,.12);border-bottom:1px solid rgba(163,93,118,.12)}
+      .create-event-band h2{font-size:clamp(2rem,3vw,3.2rem);line-height:1.02;letter-spacing:-.06em;margin:0}
+      .create-event-band h2 em{display:block;color:var(--core-red);font-style:normal;font-weight:900}
+      .create-event-band .eyebrow{margin:0 0 8px}
+      .hero-mascote{display:none}
+      .core-art{width:min(68vw,720px);height:auto;display:flex;align-items:flex-end;justify-content:center;filter:drop-shadow(0 18px 26px rgba(195,77,120,.18));}
+      .core-art svg{width:100%;height:auto;display:block}
+      .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px 28px}
+      .form-grid label{display:flex;flex-direction:column;gap:8px;min-width:0}
+      .form-grid .full-width{grid-column:1/-1}
+      .buyer-card input,.buyer-card select{width:100%;min-width:0}
+      .buyer-card .primary-button{margin-top:0}
+      @media (max-width: 760px){
+        .form-grid{grid-template-columns:1fr;gap:20px}
+        .form-grid .full-width{grid-column:auto}
+      }
+      @media (max-width: 980px){
+        .event-hero{grid-template-columns:1fr;padding-top:24px;padding-bottom:42px}.
+        .hero-copy{text-align:center;max-width:100%}.
+        .hero-copy h1{font-size:clamp(3rem,13vw,6rem)}.
+        .hero-lede{margin:0 auto}.
+        .event-meta{justify-content:center}.
+        .hero-link{justify-content:center}.
+        .hero-visual{min-height:340px}.
+      }
+      @media (max-width: 760px){.site-brand{width:90px}}
+    </style>
+  </head>
+  <body>
+    <nav class="topnav public-nav">
+      <a class="site-brand" href="checkout.html" aria-label="Core X, início">
+        <img src="assets/corex-logo.jpg" alt="Core X" />
+      </a>
+      <div>
+        <a href="#ingressos" class="active">Ingressos</a
+        ><a href="#experiencia">A experiência</a><a href="#duvidas">Dúvidas</a
+        ><a href="checkin.html">Já tenho ingresso</a
+        ><a class="primary-cta nav-cta" href="#criar-evento">Criar evento</a>
+      </div>
+    </nav>
+    <main>
+      <section class="event-hero">
+        <div class="hero-copy">
+          <p class="eyebrow">O coração de cada experiência</p>
+          <h1>GLAMUROSA.<br /><em>Viva intensamente.</em></h1>
+          <p class="hero-lede">
+            Uma noite feita para celebrar você. Música, beleza e encontros em
+            uma experiência inesquecível no coração de São Paulo.
+          </p>
+          <div class="event-meta">
+            <span>12 / 12</span><span>São Paulo · SP</span>
+          </div>
+          <div class="hero-actions">
+            <a class="primary-cta" href="#criar-evento">Criar evento</a>
+            <a class="secondary-cta" href="#ingressos">Ver ingressos</a>
+          </div>
+        </div>
+        <img src="img/coracao.png" alt="Mascote Core X" class="hero-mascote" />
+      </section>
+      <section class="create-event-band" id="criar-evento">
+        <div>
+          <p class="eyebrow">Sua festa, do jeito que você imagina</p>
+          <h2>Crie o seu evento<br /><em>com a identidade Core X</em></h2>
+        </div>
+        <a class="primary-cta" href="mailto:contato@corex.com.br"
+          >Solicitar criação de evento</a
+        >
+      </section>
+      <section class="buy-section" id="ingressos">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Garanta seu lugar</p>
+            <h2>Escolha como<br /><em>quer viver</em></h2>
+          </div>
+          <span class="section-count">01 — 03</span>
+        </div>
+        <div class="ticket-layout">
+          <div class="ticket-options">
+            <div class="ticket-intro">
+              <span>INGRESSOS DISPONÍVEIS</span
+              ><small>Selecione uma opção para continuar</small>
+            </div>
+            <label class="ticket-select-label"
+              >Seu ingresso<select id="type"></select
+            ></label>
+            <div
+              class="ticket-list"
+              id="ticketList"
+              aria-label="Opções de ingresso"
+            ></div>
+            <div class="ticket-benefit">
+              <span class="benefit-icon">✦</span>
+              <div>
+                <strong>Uma noite para lembrar</strong
+                ><small
+                  >Seu ingresso inclui acesso ao evento e carteira cashless
+                  digital.</small
+                >
+              </div>
+            </div>
+          </div>
+          <div class="buyer-card">
+            <div class="card-step">
+              <span>02</span>
+              <div>
+                <p class="eyebrow">Seus dados</p>
+                <h3>Finalize sua compra</h3>
+              </div>
+            </div>
+            <form id="ticketForm" class="form-grid">
+              <label class="full-width"
+                >Nome completo<input id="buyerName" required /></label
+              ><label>E-mail<input id="buyerEmail" type="email" /></label
+              ><label>CPF<input id="buyerCpf" required maxlength="14" /></label
+              ><label class="full-width"
+                >Pagamento<select id="method">
+                  <option value="pix">Pix</option>
+                  <option value="cartao">Cartão</option>
+                </select></label
+              >
+              <div class="full-width">
+                <button class="primary-button" type="submit">
+                  Continuar para pagamento <span>→</span>
+                </button>
+              </div>
+            </form>
+            <div id="ticketMsg"></div>
+            <small class="secure-note"
+              >Compra protegida · Você receberá tudo no e-mail</small
+            >
+          </div>
+        </div>
+      </section>
+      <section class="experience-band" id="experiencia">
+        <div>
+          <p class="eyebrow">Mais que um ingresso</p>
+          <h2>Você não assiste.<br /><em>Você vive.</em></h2>
+        </div>
+        <p>
+          Do primeiro som ao último abraço, cada detalhe foi pensado para criar
+          uma noite com a sua cara.
+        </p>
+      </section>
+      <section class="event-gallery">
+        <img src="assets/glamurosa-dj.jpeg" alt="DJ da Glamurosa" /><img
+          src="assets/glamurosa-girl.jpeg"
+          alt="Convidada da Glamurosa"
+        /><img src="assets/glamurosa-drink.jpeg" alt="Drink da Glamurosa" /><img
+          src="assets/glamurosa-leque.jpeg"
+          alt="Leque da Glamurosa"
+        />
+      </section>
+      <section class="faq-section" id="duvidas">
+        <p class="eyebrow">Antes de ir</p>
+        <h2>Dúvidas frequentes</h2>
+        <details>
+          <summary>Como recebo meu ingresso?</summary>
+          <p>
+            Depois do pagamento, sua carteira digital e QR code aparecem nesta
+            página.
+          </p>
+        </details>
+        <details>
+          <summary>Posso transferir meu ingresso?</summary>
+          <p>Sim, depois da confirmação do pagamento.</p>
+        </details>
+      </section>
+    </main>
+    <script src="js/api.js"></script>
+    <script src="js/checkout.js"></script>
+  </body>
+</html>
