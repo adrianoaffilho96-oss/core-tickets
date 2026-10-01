@@ -2,10 +2,17 @@ services:
   - type: web
     name: core-tickets
     runtime: node
-    rootDir: backend
-    buildCommand: npm install
-    startCommand: npm start
+    plan: starter
+    rootDir: .
+    buildCommand: npm --prefix backend install
+    startCommand: npm --prefix backend start
     healthCheckPath: /checkout.html
     envVars:
       - key: NODE_ENV
         value: production
+      - key: DATABASE_PATH
+        value: /var/data/festa.db
+    disk:
+      name: core-tickets-data
+      mountPath: /var/data
+      sizeGB: 1
