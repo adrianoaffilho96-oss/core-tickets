@@ -1,4 +1,5 @@
 node_modules/
+/backend/core-tickets/
 backend/festa.db
 backend/festa.db-shm
 backend/festa.db-wal
