@@ -52,6 +52,16 @@ O `render.yaml` publica o site e a API juntos, no plano Starter (pago), com disc
 
 Novos commits na `main` atualizam o site automaticamente. Faça backup do banco (`/var/data/festa.db`) periodicamente.
 
+## 4b. Hospedagem gratuita (Oracle Cloud Always Free) — opção escolhida
+
+Servidor próprio grátis, ligado 24h, com HTTPS automático (Caddy) e backup diário do banco.
+
+- Instalação inicial no servidor: `sudo bash deploy/setup.sh <ip-com-tracos>.sslip.io`
+- Atualizar após novos commits: `sudo bash /opt/core-tickets/deploy/update.sh`
+- Configuração (senha, Mercado Pago): `/opt/core-tickets/.env`, depois `sudo systemctl restart core-tickets`
+- Banco: `/var/lib/core-tickets/festa.db` · Backups: `/var/backups/core-tickets/`
+- Ver logs: `sudo journalctl -u core-tickets -f`
+
 ## 5. Antes de vender de verdade
 
 - [ ] Credenciais de produção do Mercado Pago configuradas e uma compra real de baixo valor testada (Pix e cartão)
