@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Core X | Equipe</title>
+    <link rel="icon" href="assets/favicon-32.png" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <nav class="topnav public-nav">
+      <a class="site-brand" href="/" aria-label="Core X, início"><img src="assets/corex-logo.jpg" alt="Core X" /></a>
+      <div><button class="link-button" id="logoutBtn" hidden>Sair</button></div>
+    </nav>
+    <main class="page">
+      <section id="loginView" class="panel narrow" hidden>
+        <p class="eyebrow">Área restrita</p>
+        <h1>Equipe Core X</h1>
+        <form id="loginForm" class="stack">
+          <label>Senha<input id="password" type="password" autocomplete="current-password" required /></label>
+          <button class="primary-button" type="submit">Entrar <span>→</span></button>
+        </form>
+        <div id="loginMsg"></div>
+      </section>
+
+      <section id="appView" hidden>
+        <div class="tabs" role="tablist">
+          <button data-tab="painel">Painel</button>
+          <button data-tab="checkin">Check-in</button>
+          <button data-tab="caixa">Caixa</button>
+          <button data-tab="bar">Bar</button>
+          <button data-tab="cozinha">Cozinha</button>
+          <button data-tab="config">Lotes e produtos</button>
+        </div>
+
+        <div class="tab" id="tab-painel">
+          <div class="stats" id="stats"></div>
+          <div class="panel">
+            <div class="row between">
+              <h3>Ingressos</h3>
+              <div class="row">
+                <input id="ticketSearch" placeholder="Buscar nome, CPF, e-mail" />
+                <select id="ticketStatus">
+                  <option value="">Todos</option>
+                  <option value="pago">Pagos</option>
+                  <option value="aguardando_pagamento">Aguardando</option>
+                  <option value="expirado">Expirados</option>
+                  <option value="cancelado">Cancelados</option>
+                </select>
+              </div>
+            </div>
+            <div class="table-wrap"><table id="ticketTable"></table></div>
+          </div>
+        </div>
+
+        <div class="tab" id="tab-checkin">
+          <div class="panel">
+            <h3>Check-in na portaria</h3>
+            <form id="checkinForm" class="row">
+              <input id="checkinQuery" placeholder="QR do ingresso, CPF ou nome" required />
+              <button class="primary-button inline" type="submit">Buscar</button>
+              <button class="secondary-button scan-btn" type="button" data-scan="checkinQuery">📷 Ler QR</button>
+            </form>
+            <div id="checkinMsg"></div>
+            <div id="checkinResults" class="list"></div>
+          </div>
+        </div>
+
+        <div class="tab" id="tab-caixa">
+          <div class="panel">
+            <h3>Recarga de carteira</h3>
+            <form id="walletForm" class="row">
+              <input id="walletQuery" placeholder="Código da carteira (W-...)" required />
+              <button class="primary-button inline" type="submit">Consultar</button>
+              <button class="secondary-button scan-btn" type="button" data-scan="walletQuery">📷 Ler QR</button>
+            </form>
+            <div id="walletMsg"></div>
+            <div id="walletInfo"></div>
+          </div>
+        </div>
+
+        <div class="tab" id="tab-bar">
+          <div class="grid-2">
+            <div class="panel">
+              <h3>Produtos</h3>
+              <div id="productGrid" class="product-grid"></div>
+            </div>
+            <div class="panel">
+              <h3>Pedido</h3>
+              <div id="cart" class="list"></div>
+              <p class="big" id="cartTotal"></p>
+              <form id="saleForm" class="stack">
+                <div class="row">
+                  <input id="saleWallet" placeholder="Código da carteira (W-...)" required />
+                  <button class="secondary-button scan-btn" type="button" data-scan="saleWallet">📷</button>
+                </div>
+                <button class="primary-button" type="submit">Cobrar na carteira <span>→</span></button>
+              </form>
+              <div id="saleMsg"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab" id="tab-cozinha">
+          <div class="row between"><h3>Pedidos em andamento</h3><small class="muted">Atualiza a cada 10 segundos</small></div>
+          <div id="kitchen" class="kitchen-grid"></div>
+        </div>
+
+        <div class="tab" id="tab-config">
+          <div class="panel">
+            <h3>Lotes de ingresso</h3>
+            <div class="table-wrap"><table id="lotTable"></table></div>
+          </div>
+          <div class="panel">
+            <h3>Produtos do bar</h3>
+            <div class="table-wrap"><table id="productTable"></table></div>
+          </div>
+          <div id="configMsg"></div>
+        </div>
+      </section>
+
+      <dialog id="scanDialog">
+        <video id="scanVideo" playsinline muted></video>
+        <button class="secondary-button" id="scanClose" type="button">Fechar</button>
+      </dialog>
+    </main>
+    <script src="js/api.js"></script>
+    <script src="js/equipe.js"></script>
+  </body>
+</html>

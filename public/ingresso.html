@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Core X | Meu ingresso</title>
+    <link rel="icon" href="assets/favicon-32.png" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <nav class="topnav public-nav">
+      <a class="site-brand" href="/" aria-label="Core X, início"><img src="assets/corex-logo.jpg" alt="Core X" /></a>
+      <div><a href="/#ingressos">Comprar ingresso</a></div>
+    </nav>
+    <main class="page narrow">
+      <section id="lookup" class="panel" hidden>
+        <p class="eyebrow">Já tenho ingresso</p>
+        <h1>Encontre seu ingresso</h1>
+        <p class="muted">Informe o CPF e o e-mail usados na compra.</p>
+        <form id="lookupForm" class="stack">
+          <label>CPF<input id="lookupCpf" inputmode="numeric" maxlength="14" required placeholder="000.000.000-00" /></label>
+          <label>E-mail<input id="lookupEmail" type="email" required /></label>
+          <button class="primary-button" type="submit">Buscar <span>→</span></button>
+        </form>
+        <div id="lookupMsg"></div>
+        <div id="lookupResults" class="list"></div>
+      </section>
+
+      <section id="ticketView" hidden>
+        <div class="panel ticket-head">
+          <div>
+            <p class="eyebrow">GLAMUROSA · 12/12 · São Paulo</p>
+            <h1 id="tLabel"></h1>
+            <p class="muted" id="tBuyer"></p>
+          </div>
+          <span class="badge" id="tStatus"></span>
+        </div>
+        <div id="paymentBox"></div>
+        <div id="paidBox" hidden>
+          <div class="grid-2">
+            <div class="panel center">
+              <p class="eyebrow">Entrada</p>
+              <img id="entryQr" class="qr" alt="QR code de entrada" />
+              <p class="muted small">Apresente este QR code na portaria.</p>
+              <p class="small" id="checkinInfo"></p>
+            </div>
+            <div class="panel center">
+              <p class="eyebrow">Carteira cashless</p>
+              <img id="walletQr" class="qr" alt="QR code da carteira" />
+              <p class="wallet-code" id="walletCode"></p>
+              <p class="big" id="walletBalance"></p>
+              <p class="muted small">Recarregue no caixa do evento e pague no bar com este QR.</p>
+            </div>
+          </div>
+          <div class="panel">
+            <h3>Extrato da carteira</h3>
+            <div id="walletTx" class="list"></div>
+          </div>
+          <details class="panel" id="transferBox">
+            <summary><strong>Transferir ingresso</strong></summary>
+            <form id="transferForm" class="stack">
+              <label>Nome completo do novo titular<input id="novoNome" required minlength="3" /></label>
+              <label>CPF<input id="novoCpf" inputmode="numeric" maxlength="14" required /></label>
+              <label>E-mail<input id="novoEmail" type="email" /></label>
+              <button class="primary-button" type="submit">Transferir</button>
+            </form>
+            <div id="transferMsg"></div>
+          </details>
+        </div>
+        <p class="muted small center">Guarde o endereço desta página: ele é o seu ingresso.</p>
+      </section>
+      <div id="pageMsg"></div>
+    </main>
+    <script src="js/api.js"></script>
+    <script src="js/ingresso.js"></script>
+  </body>
+</html>

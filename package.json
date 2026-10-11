@@ -1,15 +1,21 @@
 {
   "name": "core-tickets",
-  "version": "1.0.0",
-  "description": "Plataforma de ingressos e experiencias para o evento GLAMUROSA.",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "version": "2.0.0",
+  "private": true,
+  "description": "Core Tickets - ingressos, pagamentos, check-in e cashless para o evento GLAMUROSA.",
+  "main": "backend/server.js",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=20"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "node --watch backend/server.js",
+    "test": "node --test test/"
+  },
   "dependencies": {
-    "sharp": "^0.35.5"
+    "better-sqlite3": "^11.3.0",
+    "express": "^4.19.2",
+    "qrcode": "^1.5.4"
   }
 }

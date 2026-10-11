@@ -3,15 +3,25 @@ services:
     name: core-tickets
     runtime: node
     plan: starter
-    rootDir: .
-    buildCommand: npm --prefix backend install
-    startCommand: npm --prefix backend start
-    healthCheckPath: /checkout.html
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
         value: production
       - key: DATABASE_PATH
         value: /var/data/festa.db
+      - key: SESSION_SECRET
+        generateValue: true
+      # Preenchidos no painel do Render durante o deploy:
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: PUBLIC_URL
+        sync: false
+      - key: MP_ACCESS_TOKEN
+        sync: false
+      - key: MP_WEBHOOK_SECRET
+        sync: false
     disk:
       name: core-tickets-data
       mountPath: /var/data

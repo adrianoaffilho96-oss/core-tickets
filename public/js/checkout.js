@@ -1,55 +1,77 @@
-const typeSelect = document.getElementById("type"),
-  ticketList = document.getElementById("ticketList"),
-  ticketForm = document.getElementById("ticketForm"),
-  ticketMsg = document.getElementById("ticketMsg");
-async function loadTicketTypes() {
-  const lots = (await apiRequest("/ticket-types")).filter(
-    (lot) => lot.category !== "camarote",
-  );
-  typeSelect.innerHTML = lots
-    .map(
-      (lot) =>
-        `<option value="${lot.id}">${lot.label} - ${formatCurrency(lot.price)}</option>`,
-    )
-    .join("");
-  ticketList.innerHTML = lots
-    .map((lot, index) => {
-      const sold = lot.quantity_sold >= lot.quantity_total,
-        remaining = lot.quantity_total - lot.quantity_sold;
-      return `<button type="button" class="ticket-option ${index === 0 && !sold ? "selected" : ""}" data-ticket-id="${lot.id}" ${sold ? "disabled" : ""}><span class="ticket-option-main"><strong>${lot.label}</strong><small>Acesso ao evento</small></span><span class="ticket-option-side"><b>${formatCurrency(lot.price)}</b><small>${sold ? "Esgotado" : `${remaining} disponíveis`}</small></span><span class="ticket-option-check">✓</span></button>`;
-    })
-    .join("");
-  const first = lots.find((lot) => lot.quantity_sold < lot.quantity_total);
-  if (first) typeSelect.value = first.id;
-  ticketList
-    .querySelectorAll(".ticket-option:not(:disabled)")
-    .forEach((option) =>
-      option.addEventListener("click", () => {
-        typeSelect.value = option.dataset.ticketId;
-        ticketList
-          .querySelectorAll(".ticket-option")
-          .forEach((item) => item.classList.remove("selected"));
-        option.classList.add("selected");
-      }),
-    );
+const typeInput = document.getElementById('type'),
+  ticketList = document.getElementById('ticketList'),
+  ticketForm = document.getElementById('ticketForm'),
+  ticketMsg = document.getElementById('ticketMsg'),
+  submitBtn = document.getElementById('submitBtn');
+
+maskCpf(document.getElementById('buyerCpf'));
+
+function renderLot(lot) {
+  const remaining = lot.quantity_total - lot.quantity_sold,
+    sold = remaining <= 0,
+    detail = lot.category === 'camarote' ? `${esc(lot.sector_label || 'Camarote')} · até ${lot.capacity} pessoas` : 'Acesso ao evento',
+    stock = sold ? 'Esgotado' : remaining <= 20 ? `Últimos ${remaining}` : 'Disponível';
+  return `<button type="button" class="ticket-option" data-ticket-id="${esc(lot.id)}" ${sold ? 'disabled' : ''}><span class="ticket-option-main"><strong>${esc(lot.label)}</strong><small>${detail}</small></span><span class="ticket-option-side"><b>${formatCurrency(lot.price)}</b><small>${stock}</small></span><span class="ticket-option-check">✓</span></button>`;
 }
-ticketForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
+
+function selectLot(id) {
+  typeInput.value = id;
+  ticketList.querySelectorAll('.ticket-option').forEach((item) => item.classList.toggle('selected', item.dataset.ticketId === id));
+}
+
+async function loadTicketTypes() {
   try {
-    const r = await apiRequest("/tickets", {
-      method: "POST",
+    const lots = await apiRequest('/ticket-types');
+    const groups = [
+      ['Ingressos', lots.filter((l) => l.category !== 'camarote')],
+      ['Camarotes', lots.filter((l) => l.category === 'camarote')],
+    ].filter(([, items]) => items.length);
+    ticketList.innerHTML = groups
+      .map(([title, items]) => `<p class="ticket-group-title">${title}</p>${items.map(renderLot).join('')}`)
+      .join('');
+    ticketList.querySelectorAll('.ticket-option:not(:disabled)').forEach((option) => option.addEventListener('click', () => selectLot(option.dataset.ticketId)));
+    const available = (lot) => lot.quantity_sold < lot.quantity_total;
+    const first = lots.find((lot) => lot.category !== 'camarote' && available(lot)) || lots.find(available);
+    if (first) selectLot(first.id);
+    else showMsg(ticketMsg, 'error', 'Todos os ingressos estão esgotados.');
+  } catch (err) {
+    showMsg(ticketMsg, 'error', 'Não foi possível carregar os ingressos. Atualize a página.');
+  }
+}
+
+async function showPaymentMode() {
+  try {
+    const cfg = await apiRequest('/config');
+    if (cfg.paymentMode === 'simulado') {
+      document.getElementById('secureNote').textContent = 'Modo de teste: nenhum pagamento real será cobrado.';
+    }
+  } catch {}
+}
+
+ticketForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  showMsg(ticketMsg);
+  if (!typeInput.value) return showMsg(ticketMsg, 'error', 'Escolha um ingresso.');
+  if (!ticketForm.reportValidity()) return;
+  submitBtn.disabled = true;
+  try {
+    const r = await apiRequest('/tickets', {
+      method: 'POST',
       body: JSON.stringify({
-        lotId: typeSelect.value,
+        lotId: typeInput.value,
         buyerName: buyerName.value,
         buyerEmail: buyerEmail.value,
         buyerCpf: buyerCpf.value,
-        method: method.value,
+        method: ticketForm.elements.method.value,
       }),
     });
-    ticketMsg.innerHTML = `<div class="msg success">Cobrança gerada. Confirme o pagamento abaixo.</div>`;
-    paymentPanel.innerHTML = "";
+    window.location.href = `ingresso.html?id=${encodeURIComponent(r.ticketId)}`;
   } catch (err) {
-    ticketMsg.innerHTML = `<div class="msg error">${err.message}</div>`;
+    showMsg(ticketMsg, 'error', err.message);
+    submitBtn.disabled = false;
+    if (err.status === 409) loadTicketTypes();
   }
 });
+
 loadTicketTypes();
+showPaymentMode();

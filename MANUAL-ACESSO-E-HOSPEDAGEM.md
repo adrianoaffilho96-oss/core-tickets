@@ -1,51 +1,61 @@
 # Manual de acesso e hospedagem do Core Tickets
 
-## Acesso no computador
-
-1. Abra um terminal na pasta do projeto e entre em `backend`:
-
-   ```sh
-   cd core-tickets/backend
-   ```
-
-2. Instale as dependencias (na primeira vez) e inicie o servidor:
-
-   ```sh
-   npm install
-   npm start
-   ```
-
-3. Abra `http://localhost:8000/checkout.html` no navegador.
-
-Deixe o terminal aberto enquanto estiver usando o site localmente. Para parar o servidor, pressione `Ctrl+C`.
-
-## Link temporario para testes externos
-
-Com o servidor local ainda rodando, abra outro terminal na pasta do projeto e execute:
+## 1. Rodar no computador
 
 ```sh
-npx localtunnel --subdomain corex-teste --port 8000
+cd core-tickets
+cp .env.example .env
+npm install
+npm start
 ```
 
-Use `https://corex-teste.loca.lt/checkout.html` enquanto esse processo estiver ativo. Esse link e temporario: se o computador, o servidor ou o terminal desligar, o acesso externo para. Nao use esse metodo para vendas reais.
+- Site: `http://localhost:8000`
+- Área da equipe: `http://localhost:8000/equipe.html` (senha = `ADMIN_PASSWORD` do `.env`; se ficar vazia, o terminal mostra uma senha temporária ao iniciar)
 
-## Hospedagem permanente
+Deixe o terminal aberto enquanto usa o site. Para parar, pressione `Ctrl+C`.
 
-O projeto inclui `render.yaml` para publicar o site e o backend juntos no Render. Essa configuracao escolhe o plano pago Starter, mantem o servico ligado e usa um disco persistente de 1 GB para o banco SQLite. Nenhum servico foi ativado nem nenhuma cobranca autorizada por este manual.
+## 2. Ativar pagamentos reais no Mercado Pago
+
+1. Crie ou acesse sua conta em `https://www.mercadopago.com.br` (de preferência conta PJ/vendedor).
+2. Abra `https://www.mercadopago.com.br/developers/panel/app` e crie uma aplicação ("Pagamentos online", produto "Checkout Pro" / "Checkout Transparente").
+3. Em **Credenciais de teste**, copie o *Access Token* (começa com `TEST-`) e coloque em `MP_ACCESS_TOKEN` no `.env`. Teste compras com os usuários e cartões de teste do Mercado Pago.
+4. Cadastre uma chave Pix na conta do Mercado Pago (necessário para gerar cobranças Pix).
+5. Em **Webhooks**, cadastre a URL `https://SEU-ENDERECO/api/webhooks/mercadopago`, marque o evento **Pagamentos** e copie a *assinatura secreta* para `MP_WEBHOOK_SECRET`.
+6. Quando tudo estiver testado, troque para as **Credenciais de produção** (Access Token começando com `APP_USR-`).
+
+Sem `MP_ACCESS_TOKEN` o site fica em modo simulado: nada é cobrado.
+
+> O webhook e o retorno automático do cartão só funcionam com endereço `https://` público (Render ou túnel). No computador, sem túnel, a página do ingresso ainda confirma o pagamento consultando o Mercado Pago a cada poucos segundos.
+
+## 3. Link temporário para testes externos
+
+Com o servidor rodando, em outro terminal:
+
+```sh
+npx ngrok http 8000
+```
+
+Use o endereço `https://...ngrok-free.app` mostrado e coloque-o em `PUBLIC_URL` no `.env` (reinicie o servidor). Esse link para de funcionar quando o terminal fechar. Não use para vendas reais.
+
+## 4. Hospedagem permanente (Render)
+
+O `render.yaml` publica o site e a API juntos, no plano Starter (pago), com disco persistente de 1 GB para o banco. Nada é ativado ou cobrado até você confirmar no painel do Render.
 
 1. Entre em `https://dashboard.render.com/` e conecte sua conta GitHub.
-2. Escolha **New** e depois **Blueprint**.
-3. Selecione o repositorio `adrianoaffilho96-oss/core-tickets` e a branch `main`.
-4. Revise o plano Starter e o disco persistente mostrados pelo Blueprint. Confirme somente se estiver de acordo com os precos exibidos na sua conta.
-5. Crie o servico e aguarde o deploy terminar.
-6. Copie o endereco `onrender.com` mostrado no painel e acesse `/checkout.html` no final do endereco.
+2. Escolha **New > Blueprint** e selecione o repositório `adrianoaffilho96-oss/core-tickets`, branch `main`.
+3. Preencha as variáveis pedidas:
+   - `ADMIN_PASSWORD`: senha forte da equipe
+   - `PUBLIC_URL`: o endereço do serviço (ex.: `https://core-tickets.onrender.com`) — pode ajustar depois do primeiro deploy
+   - `MP_ACCESS_TOKEN` e `MP_WEBHOOK_SECRET`: do passo 2 (deixe vazio para começar em modo simulado)
+4. Revise o plano e o disco, confirme se estiver de acordo com os preços e aguarde o deploy.
+5. Cadastre o webhook do Mercado Pago com o endereço final do Render.
 
-Depois do primeiro deploy, novos commits enviados para `main` atualizam o servico automaticamente. Guarde o endereco do painel Render e faca backups do banco periodicamente. O endereco do servico pode mudar se voce o excluir e criar novamente; um dominio proprio e opcional.
+Novos commits na `main` atualizam o site automaticamente. Faça backup do banco (`/var/data/festa.db`) periodicamente.
 
-## O que fica disponivel hoje
+## 5. Antes de vender de verdade
 
-- O GitHub guarda o codigo e as imagens: `https://github.com/adrianoaffilho96-oss/core-tickets`.
-- GitHub Pages, como no Port Scanner, publica somente arquivos estaticos. O Core Tickets tambem precisa da API e do banco, por isso Pages sozinho nao executa o fluxo de compra.
-- No momento, o deploy do GitHub Pages esta bloqueado por uma pendencia de cobranca na conta GitHub Actions. O endereco Pages retorna 404 ate essa pendencia ser resolvida.
-- O gateway em `backend/gateway.js` e simulado. Pix e cartao ainda nao processam pagamentos reais; nao anuncie o checkout para venda real antes de integrar e testar um provedor de pagamentos.
-- Um servico pago pode ficar continuamente disponivel enquanto a conta e a hospedagem estiverem ativas, mas nenhum provedor pode garantir disponibilidade para sempre.
+- [ ] Credenciais de produção do Mercado Pago configuradas e uma compra real de baixo valor testada (Pix e cartão)
+- [ ] Webhook cadastrado e recebendo notificações (painel do Mercado Pago mostra as entregas)
+- [ ] `ADMIN_PASSWORD` forte definida
+- [ ] Lotes, preços e quantidades revisados em **Equipe > Lotes e produtos**
+- [ ] Data, local e textos do evento revisados em `public/index.html`

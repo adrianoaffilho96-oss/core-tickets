@@ -1,6 +1,157 @@
-const express=require('express');const{v4:uuidv4}=require('uuid');const QRCode=require('qrcode');const db=require('../db');const gateway=require('../gateway');const router=express.Router();
-router.get('/ticket-types',(q,s)=>s.json(db.prepare('SELECT * FROM ticket_lots WHERE active=1 ORDER BY category,price').all()));
-router.post('/tickets',(req,res)=>{const{lotId,buyerName,buyerEmail,buyerCpf,method,cardToken}=req.body;const lot=db.prepare('SELECT * FROM ticket_lots WHERE id=? AND active=1').get(lotId);if(!lot)return res.status(400).json({error:'Ingresso/lote invalido.'});if(lot.quantity_sold>=lot.quantity_total)return res.status(409).json({error:'Esse lote esta esgotado.'});if(!buyerName||!buyerName.trim())return res.status(400).json({error:'Nome obrigatorio.'});if(!['pix','cartao'].includes(method))return res.status(400).json({error:'Pagamento invalido.'});const cpf=(buyerCpf||'').replace(/\D/g,'');if(cpf.length!==11)return res.status(400).json({error:'CPF invalido.'});const id=uuidv4(),now=new Date().toISOString();try{db.transaction(()=>{const u=db.prepare('UPDATE ticket_lots SET quantity_sold=quantity_sold+1 WHERE id=? AND quantity_sold<quantity_total').run(lot.id);if(!u.changes)throw Error('sold');db.prepare("INSERT INTO tickets VALUES(?,?,?,?,?,?,?,?,?,?)").run(id,lot.id,lot.label,lot.price,buyerName.trim(),buyerEmail||null,cpf,'aguardando_pagamento',now,null);})();}catch(e){return res.status(409).json({error:'Esse lote acabou de esgotar.'});}const c=method==='pix'?gateway.createPixCharge({amount:lot.price,description:lot.label}):gateway.createCardCharge({amount:lot.price,description:lot.label,cardToken});const paymentId=uuidv4();db.prepare('INSERT INTO payments VALUES(?,?,?,?,?,?,?,?,?)').run(paymentId,id,method,lot.price,'pendente',c.gatewayRef,c.pixCopiaCola||null,now,null);res.json({ticketId:id,paymentId,amount:lot.price,method,pixCopiaCola:c.pixCopiaCola||null});});
-router.post('/payments/:id/simular-confirmacao',async(req,res)=>{const p=db.prepare('SELECT * FROM payments WHERE id=?').get(req.params.id);if(!p)return res.status(404).json({error:'Pagamento nao encontrado.'});if(p.status==='confirmado')return res.json({ok:true,alreadyConfirmed:true});const r=gateway.simulateConfirmation();db.prepare('UPDATE payments SET status=?,confirmed_at=? WHERE id=?').run(r.status,r.confirmedAt,p.id);db.prepare("UPDATE tickets SET status='pago' WHERE id=?").run(p.ticket_id);const code=`W-${uuidv4().slice(0,8).toUpperCase()}`,wid=uuidv4();db.prepare('INSERT INTO wallets VALUES(?,?,?,?,?,?,?)').run(wid,p.ticket_id,code,0,'ativa',await QRCode.toDataURL(code),new Date().toISOString());res.json({ok:true,walletCode:code});});
-router.get('/wallets/:code',(req,res)=>{const w=db.prepare('SELECT * FROM wallets WHERE code=?').get(req.params.code);if(!w)return res.status(404).json({error:'Carteira nao encontrada.'});res.json({wallet:w,transactions:db.prepare('SELECT * FROM wallet_transactions WHERE wallet_id=?').all(w.id)});});
-router.post('/tickets/:id/transferir',(req,res)=>{const{novoNome,novoEmail,novoCpf}=req.body;const cpf=(novoCpf||'').replace(/\D/g,'');const t=db.prepare('SELECT * FROM tickets WHERE id=?').get(req.params.id);if(!t)return res.status(404).json({error:'Ingresso nao encontrado.'});if(t.status!=='pago')return res.status(409).json({error:'Ingresso ainda nao pago.'});if(!novoNome||cpf.length!==11)return res.status(400).json({error:'Dados invalidos.'});db.prepare('UPDATE tickets SET buyer_name=?,buyer_email=?,buyer_cpf=? WHERE id=?').run(novoNome.trim(),novoEmail||null,cpf,t.id);res.json({ok:true});});module.exports=router;
+// Rotas publicas: compra de ingresso, acompanhamento do pagamento e carteira.
+const express = require('express');
+const QRCode = require('qrcode');
+const db = require('../db');
+const gateway = require('../gateway');
+const payments = require('../payments');
+const { onlyDigits, isValidCpf, isValidEmail, asyncRoute } = require('../util');
+
+const router = express.Router();
+
+router.get('/config', (req, res) => {
+  res.json({ paymentMode: gateway.mode, expirationMinutes: payments.EXPIRATION_MINUTES });
+});
+
+router.get('/ticket-types', (req, res) => {
+  const lots = db
+    .prepare(
+      'SELECT id,category,label,price,capacity,sector_label,quantity_total,quantity_sold FROM ticket_lots WHERE active=1 ORDER BY category,price',
+    )
+    .all();
+  res.json(lots);
+});
+
+router.post(
+  '/tickets',
+  asyncRoute(async (req, res) => {
+    const { lotId, buyerName, buyerEmail, buyerCpf, method } = req.body || {};
+    const lot = db.prepare('SELECT * FROM ticket_lots WHERE id=? AND active=1').get(lotId);
+    if (!lot) return res.status(400).json({ error: 'Ingresso/lote invalido.' });
+    if (lot.quantity_sold >= lot.quantity_total) return res.status(409).json({ error: 'Esse lote esta esgotado.' });
+    const name = String(buyerName || '').trim();
+    if (name.length < 3 || name.length > 120) return res.status(400).json({ error: 'Informe seu nome completo.' });
+    if (!isValidEmail(buyerEmail)) return res.status(400).json({ error: 'Informe um e-mail valido.' });
+    if (!isValidCpf(buyerCpf)) return res.status(400).json({ error: 'CPF invalido.' });
+    if (!['pix', 'cartao'].includes(method)) return res.status(400).json({ error: 'Forma de pagamento invalida.' });
+
+    const result = await payments.createTicketPurchase({
+      lot,
+      buyer: { name, email: String(buyerEmail).trim().toLowerCase(), cpf: onlyDigits(buyerCpf) },
+      method,
+    });
+    res.status(201).json(result);
+  }),
+);
+
+// Pagina do ingresso: status do pagamento, Pix, QR de entrada e carteira.
+router.get(
+  '/tickets/:id',
+  asyncRoute(async (req, res) => {
+    const id = req.params.id;
+    let payment = db.prepare('SELECT * FROM payments WHERE ticket_id=? ORDER BY created_at DESC').get(id);
+    if (payment && payment.status === 'pendente') {
+      await payments.syncPayment(payment.id);
+      payment = db.prepare('SELECT * FROM payments WHERE id=?').get(payment.id);
+    }
+    const ticket = db.prepare('SELECT * FROM tickets WHERE id=?').get(id);
+    if (!ticket) return res.status(404).json({ error: 'Ingresso nao encontrado.' });
+
+    const out = {
+      ticket: {
+        id: ticket.id,
+        label: ticket.type_label,
+        price: ticket.price,
+        buyerName: ticket.buyer_name,
+        status: ticket.status,
+        createdAt: ticket.created_at,
+        checkedInAt: ticket.checked_in_at,
+      },
+      payment: null,
+      wallet: null,
+      entryQr: null,
+      paymentMode: gateway.mode,
+    };
+
+    if (payment) {
+      out.payment = {
+        method: payment.method,
+        status: payment.status,
+        amount: payment.amount,
+        expiresAt: payment.expires_at,
+        confirmedAt: payment.confirmed_at,
+      };
+      if (payment.status === 'pendente') {
+        out.payment.checkoutUrl = payment.checkout_url;
+        if (payment.pix_copia_cola) {
+          out.payment.pixCopiaCola = payment.pix_copia_cola;
+          out.payment.pixQr = await QRCode.toDataURL(payment.pix_copia_cola, { margin: 1, width: 320 });
+        }
+      }
+    }
+
+    if (ticket.status === 'pago') {
+      out.entryQr = await QRCode.toDataURL(`CX-${ticket.id}`, { margin: 1, width: 320 });
+      const wallet = db.prepare('SELECT * FROM wallets WHERE ticket_id=?').get(ticket.id);
+      if (wallet) {
+        out.wallet = { code: wallet.code, balance: wallet.balance, status: wallet.status, qr: wallet.qr_data_url };
+      }
+    }
+    res.json(out);
+  }),
+);
+
+// Disponivel apenas no modo simulado (sem Mercado Pago configurado).
+router.post(
+  '/tickets/:id/simular-pagamento',
+  asyncRoute(async (req, res) => {
+    if (gateway.mode !== 'simulado') return res.status(403).json({ error: 'Simulacao desativada com o gateway real.' });
+    const payment = db.prepare("SELECT * FROM payments WHERE ticket_id=? AND status='pendente'").get(req.params.id);
+    if (!payment) return res.status(404).json({ error: 'Nenhum pagamento pendente para esse ingresso.' });
+    await payments.confirmPayment(payment.id, null);
+    res.json({ ok: true });
+  }),
+);
+
+router.post('/tickets/:id/transferir', (req, res) => {
+  const { novoNome, novoEmail, novoCpf } = req.body || {};
+  const t = db.prepare('SELECT * FROM tickets WHERE id=?').get(req.params.id);
+  if (!t) return res.status(404).json({ error: 'Ingresso nao encontrado.' });
+  if (t.status !== 'pago') return res.status(409).json({ error: 'So e possivel transferir ingressos pagos.' });
+  if (t.checked_in_at) return res.status(409).json({ error: 'Esse ingresso ja foi usado na entrada.' });
+  const name = String(novoNome || '').trim();
+  if (name.length < 3) return res.status(400).json({ error: 'Informe o nome completo do novo titular.' });
+  if (!isValidCpf(novoCpf)) return res.status(400).json({ error: 'CPF do novo titular invalido.' });
+  if (novoEmail && !isValidEmail(novoEmail)) return res.status(400).json({ error: 'E-mail do novo titular invalido.' });
+  db.prepare('UPDATE tickets SET buyer_name=?, buyer_email=?, buyer_cpf=? WHERE id=?').run(
+    name,
+    novoEmail ? String(novoEmail).trim().toLowerCase() : null,
+    onlyDigits(novoCpf),
+    t.id,
+  );
+  res.json({ ok: true });
+});
+
+// "Ja tenho ingresso": exige CPF e e-mail da compra para listar os ingressos.
+router.post('/meus-ingressos', (req, res) => {
+  const { cpf, email } = req.body || {};
+  if (!isValidCpf(cpf) || !isValidEmail(email)) return res.status(400).json({ error: 'Informe o CPF e o e-mail usados na compra.' });
+  const rows = db
+    .prepare(
+      "SELECT id,type_label label,status,created_at createdAt FROM tickets WHERE buyer_cpf=? AND lower(buyer_email)=? AND status IN ('pago','aguardando_pagamento') ORDER BY created_at DESC",
+    )
+    .all(onlyDigits(cpf), String(email).trim().toLowerCase());
+  if (!rows.length) return res.status(404).json({ error: 'Nenhum ingresso encontrado com esses dados.' });
+  res.json({ tickets: rows });
+});
+
+router.get('/wallets/:code', (req, res) => {
+  const w = db.prepare('SELECT id,code,balance,status,created_at FROM wallets WHERE code=?').get(String(req.params.code).toUpperCase());
+  if (!w) return res.status(404).json({ error: 'Carteira nao encontrada.' });
+  const transactions = db
+    .prepare('SELECT type,amount,description,created_at FROM wallet_transactions WHERE wallet_id=? ORDER BY created_at DESC')
+    .all(w.id);
+  delete w.id;
+  res.json({ wallet: w, transactions });
+});
+
+module.exports = router;

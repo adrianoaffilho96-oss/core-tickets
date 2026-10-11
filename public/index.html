@@ -42,26 +42,37 @@
         .form-grid .full-width{grid-column:auto}
       }
       @media (max-width: 980px){
-        .event-hero{grid-template-columns:1fr;padding-top:24px;padding-bottom:42px}.
-        .hero-copy{text-align:center;max-width:100%}.
-        .hero-copy h1{font-size:clamp(3rem,13vw,6rem)}.
-        .hero-lede{margin:0 auto}.
-        .event-meta{justify-content:center}.
-        .hero-link{justify-content:center}.
-        .hero-visual{min-height:340px}.
+        .event-hero{grid-template-columns:1fr;padding-top:24px;padding-bottom:42px}
+        .hero-copy{text-align:center;max-width:100%}
+        .hero-copy h1{font-size:clamp(2.6rem,11vw,6rem)}
+        .event-hero::before{position:relative;display:block;right:auto;top:auto;transform:none;width:min(72vw,340px);height:min(72vw,340px);margin:0 auto;justify-self:center}
+        .hero-actions{justify-content:center}
+        .hero-lede{margin:0 auto}
+        .event-meta{justify-content:center}
+        .hero-link{justify-content:center}
+        .hero-visual{min-height:340px}
       }
       @media (max-width: 760px){.site-brand{width:90px}}
+      .ticket-group-title{margin:18px 0 8px;font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#927078}
+      .pay-methods{display:grid;grid-template-columns:1fr 1fr;gap:12px;border:0;padding:0;margin:0}
+      .pay-methods legend{color:#614d68;font-weight:700;margin-bottom:8px}
+      .pay-method{position:relative;display:flex!important;flex-direction:column;gap:2px!important;padding:14px 16px;border:1px solid #ead8dc;cursor:pointer;transition:border-color .15s,box-shadow .15s}
+      .pay-method input{position:absolute;opacity:0;pointer-events:none}
+      .pay-method strong{color:#291016}
+      .pay-method small{color:#927078;font-weight:500}
+      .pay-method:has(input:checked){border-color:var(--core-red);box-shadow:0 0 0 2px rgba(213,34,54,.15)}
+      .primary-button:disabled{opacity:.6;cursor:wait}
     </style>
   </head>
   <body>
     <nav class="topnav public-nav">
-      <a class="site-brand" href="checkout.html" aria-label="Core X, início">
+      <a class="site-brand" href="/" aria-label="Core X, início">
         <img src="assets/corex-logo.jpg" alt="Core X" />
       </a>
       <div>
         <a href="#ingressos" class="active">Ingressos</a
         ><a href="#experiencia">A experiência</a><a href="#duvidas">Dúvidas</a
-        ><a href="checkin.html">Já tenho ingresso</a
+        ><a href="ingresso.html">Já tenho ingresso</a
         ><a class="primary-cta nav-cta" href="#criar-evento">Criar evento</a>
       </div>
     </nav>
@@ -107,9 +118,7 @@
               <span>INGRESSOS DISPONÍVEIS</span
               ><small>Selecione uma opção para continuar</small>
             </div>
-            <label class="ticket-select-label"
-              >Seu ingresso<select id="type"></select
-            ></label>
+            <input type="hidden" id="type" />
             <div
               class="ticket-list"
               id="ticketList"
@@ -134,26 +143,36 @@
                 <h3>Finalize sua compra</h3>
               </div>
             </div>
-            <form id="ticketForm" class="form-grid">
+            <form id="ticketForm" class="form-grid" novalidate>
               <label class="full-width"
-                >Nome completo<input id="buyerName" required /></label
-              ><label>E-mail<input id="buyerEmail" type="email" /></label
-              ><label>CPF<input id="buyerCpf" required maxlength="14" /></label
-              ><label class="full-width"
-                >Pagamento<select id="method">
-                  <option value="pix">Pix</option>
-                  <option value="cartao">Cartão</option>
-                </select></label
-              >
+                >Nome completo<input id="buyerName" autocomplete="name" required minlength="3"
+              /></label>
+              <label
+                >E-mail<input id="buyerEmail" type="email" autocomplete="email" required
+              /></label>
+              <label
+                >CPF<input id="buyerCpf" inputmode="numeric" required maxlength="14" placeholder="000.000.000-00"
+              /></label>
+              <fieldset class="pay-methods full-width">
+                <legend>Pagamento</legend>
+                <label class="pay-method"
+                  ><input type="radio" name="method" value="pix" checked /><strong>Pix</strong
+                  ><small>Aprovação na hora</small></label
+                >
+                <label class="pay-method"
+                  ><input type="radio" name="method" value="cartao" /><strong>Cartão</strong
+                  ><small>Crédito em até 12x</small></label
+                >
+              </fieldset>
               <div class="full-width">
-                <button class="primary-button" type="submit">
+                <button class="primary-button" type="submit" id="submitBtn">
                   Continuar para pagamento <span>→</span>
                 </button>
               </div>
             </form>
             <div id="ticketMsg"></div>
-            <small class="secure-note"
-              >Compra protegida · Você receberá tudo no e-mail</small
+            <small class="secure-note" id="secureNote"
+              >Pagamento processado pelo Mercado Pago · Seus dados de cartão não passam pelo nosso site</small
             >
           </div>
         </div>
@@ -183,16 +202,34 @@
         <details>
           <summary>Como recebo meu ingresso?</summary>
           <p>
-            Depois do pagamento, sua carteira digital e QR code aparecem nesta
-            página.
+            Assim que o pagamento é aprovado, a página do seu ingresso mostra o QR code de entrada e a sua
+            carteira cashless. Guarde o link ou encontre seu ingresso depois em “Já tenho ingresso” com CPF e e-mail.
+          </p>
+        </details>
+        <details>
+          <summary>Quanto tempo tenho para pagar?</summary>
+          <p>
+            O Pix e o link do cartão ficam válidos por 30 minutos. Depois disso o ingresso volta para venda e é preciso
+            fazer um novo pedido.
+          </p>
+        </details>
+        <details>
+          <summary>O que é a carteira cashless?</summary>
+          <p>
+            Todo ingresso vem com uma carteira digital. Recarregue no caixa do evento e pague bebidas e comidas no bar
+            mostrando o QR da carteira, sem precisar de dinheiro ou cartão.
           </p>
         </details>
         <details>
           <summary>Posso transferir meu ingresso?</summary>
-          <p>Sim, depois da confirmação do pagamento.</p>
+          <p>Sim. Depois da confirmação do pagamento e antes da entrada, use a opção “Transferir” na página do ingresso.</p>
         </details>
       </section>
     </main>
+    <footer class="site-footer">
+      <span>© Core X · GLAMUROSA</span>
+      <span><a href="ingresso.html">Meu ingresso</a> · <a href="equipe.html">Área da equipe</a></span>
+    </footer>
     <script src="js/api.js"></script>
     <script src="js/checkout.js"></script>
   </body>
