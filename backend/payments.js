@@ -117,6 +117,45 @@ async function confirmPayment(paymentId, providerRef) {
   })();
 }
 
+// Cortesia emitida pela equipe: ingresso gratuito ja confirmado, sem cobranca no gateway.
+async function issueCourtesy({ lot, buyer }) {
+  const ticketId = randomUUID();
+  const paymentId = randomUUID();
+  const createdAt = now();
+  db.transaction(() => {
+    const reserved = db
+      .prepare("UPDATE ticket_lots SET quantity_sold=quantity_sold+1 WHERE id=? AND category='cortesia' AND quantity_sold<quantity_total")
+      .run(lot.id);
+    if (!reserved.changes) {
+      const err = new Error('Limite de cortesias atingido. Aumente o total em Lotes e produtos.');
+      err.status = 409;
+      throw err;
+    }
+    db.prepare('INSERT INTO tickets(id,type,type_label,price,buyer_name,buyer_email,buyer_cpf,status,created_at) VALUES(?,?,?,?,?,?,?,?,?)').run(
+      ticketId,
+      lot.id,
+      lot.label,
+      0,
+      buyer.name,
+      buyer.email,
+      buyer.cpf,
+      'aguardando_pagamento',
+      createdAt,
+    );
+    db.prepare('INSERT INTO payments(id,ticket_id,method,amount,status,provider,created_at) VALUES(?,?,?,?,?,?,?)').run(
+      paymentId,
+      ticketId,
+      'cortesia',
+      0,
+      'pendente',
+      'cortesia',
+      createdAt,
+    );
+  })();
+  await confirmPayment(paymentId);
+  return { ticketId };
+}
+
 function refundPayment(paymentId) {
   db.transaction(() => {
     const p = db.prepare('SELECT * FROM payments WHERE id=?').get(paymentId);
@@ -172,6 +211,7 @@ async function expireOverdue() {
 module.exports = {
   EXPIRATION_MINUTES,
   createTicketPurchase,
+  issueCourtesy,
   confirmPayment,
   syncPayment,
   handleWebhook,

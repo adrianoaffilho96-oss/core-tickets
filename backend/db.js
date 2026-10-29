@@ -116,12 +116,11 @@ if (!db.prepare('SELECT COUNT(*) c FROM products').get().c) {
 if (!db.prepare('SELECT COUNT(*) c FROM ticket_lots').get().c) {
   const add = db.prepare('INSERT INTO ticket_lots VALUES(?,?,?,?,?,?,?,0,1)');
   [
-    ['ingresso', 'Ingresso Pista', 120, null, null, 10000],
-    ['ingresso', 'Ingresso VIP', 250, null, null, 10000],
-    ['ingresso', 'Combo Open Bar', 260, null, null, 10000],
-    ['camarote', 'Camarote A - Mesa 1', 1800, 6, 'Setor A', 1],
-    ['camarote', 'Camarote A - Mesa 2', 1800, 6, 'Setor A', 1],
-    ['camarote', 'Camarote B - Mesa 1', 1400, 6, 'Setor B', 1],
+    ['ingresso', '1º lote', 120, null, null, 100],
+    ['ingresso', '2º lote', 160, null, null, 100],
+    ['ingresso', '3º lote', 200, null, null, 100],
+    // Cortesia: gratuita e emitida somente pela equipe (nao aparece no site).
+    ['cortesia', 'Cortesia', 0, null, null, 100],
   ].forEach((l) => add.run(randomUUID(), ...l));
 }
 

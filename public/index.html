@@ -3,7 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Core X | GLAMUROSA</title>
+    <title>Core X</title>
+    <meta name="description" content="Core X: crie o seu evento com a nossa identidade e compre ingressos para as próximas festas. Pix ou cartão, ingresso digital e carteira cashless." />
+    <meta property="og:title" content="Core X" />
+    <meta property="og:description" content="Crie o seu evento ou garanta seu ingresso para a próxima festa Core X." />
+    <meta property="og:image" content="/assets/corex-logo.png" />
     <link rel="stylesheet" href="styles.css" />
     <style>
       .event-hero{display:grid;grid-template-columns:1.2fr 1.3fr;align-items:center;gap:32px;min-height:680px;padding:40px max(24px,calc((100% - 1200px)/2)) 18px;background:linear-gradient(180deg,#f8dfe8 0%,#f3e7eb 22%,#f9dfe8 100%);position:relative;overflow:hidden}
@@ -12,7 +16,9 @@
       .hero-copy,.hero-visual{position:relative;z-index:1}
       .site-brand{display:flex;align-items:center;width:110px;flex:0 0 auto;margin:0!important}
       .site-brand img{display:block;width:100%;height:auto;max-height:34px;object-fit:contain}
-      .hero-copy{padding-left:8px;max-width:52%}
+      .hero-copy{max-width:640px;justify-self:center;text-align:center}
+      .hero-copy .hero-lede{margin-left:auto;margin-right:auto}
+      .hero-copy .hero-actions{justify-content:center}
       .hero-copy h1{font-size:clamp(3rem,5.2vw,7rem);line-height:.86;letter-spacing:-.06em;margin:12px 0 18px;font-weight:900}
       .hero-copy h1 em{display:block;color:var(--core-red);font-style:normal;font-weight:900}
       .hero-lede{max-width:560px;font-size:1.15rem;line-height:1.5;color:#4b2b32;font-weight:500}
@@ -30,6 +36,8 @@
       .create-event-band h2 em{display:block;color:var(--core-red);font-style:normal;font-weight:900}
       .create-event-band .eyebrow{margin:0 0 8px}
       .hero-mascote{display:none}
+      .public-nav{justify-content:flex-end}
+      @media (max-width: 760px){.public-nav{display:none}}
       .core-art{width:min(68vw,720px);height:auto;display:flex;align-items:flex-end;justify-content:center;filter:drop-shadow(0 18px 26px rgba(195,77,120,.18));}
       .core-art svg{width:100%;height:auto;display:block}
       .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px 28px}
@@ -62,13 +70,11 @@
       .pay-method small{color:#927078;font-weight:500}
       .pay-method:has(input:checked){border-color:var(--core-red);box-shadow:0 0 0 2px rgba(213,34,54,.15)}
       .primary-button:disabled{opacity:.6;cursor:wait}
+      .hero-logo img{display:block;width:min(640px,100%);height:auto;margin:0 auto 22px;filter:drop-shadow(0 10px 18px rgba(195,77,120,.18))}
     </style>
   </head>
   <body>
     <nav class="topnav public-nav">
-      <a class="site-brand" href="/" aria-label="Core X, início">
-        <img src="assets/corex-logo.jpg" alt="Core X" />
-      </a>
       <div>
         <a href="#ingressos" class="active">Ingressos</a
         ><a href="#experiencia">A experiência</a><a href="#duvidas">Dúvidas</a
@@ -80,14 +86,11 @@
       <section class="event-hero">
         <div class="hero-copy">
           <p class="eyebrow">O coração de cada experiência</p>
-          <h1>GLAMUROSA.<br /><em>Viva intensamente.</em></h1>
+          <h1 class="hero-logo"><img src="assets/corex-logo.png" alt="Core X" /><em>Viva intensamente.</em></h1>
           <p class="hero-lede">
-            Uma noite feita para celebrar você. Música, beleza e encontros em
-            uma experiência inesquecível no coração de São Paulo.
+            Festas com a energia Core X. Crie o seu evento com a nossa
+            identidade ou garanta seu ingresso para a próxima noite.
           </p>
-          <div class="event-meta">
-            <span>12 / 12</span><span>São Paulo · SP</span>
-          </div>
           <div class="hero-actions">
             <a class="primary-cta" href="#criar-evento">Criar evento</a>
             <a class="secondary-cta" href="#ingressos">Ver ingressos</a>
@@ -188,12 +191,12 @@
         </p>
       </section>
       <section class="event-gallery">
-        <img src="assets/glamurosa-dj.jpeg" alt="DJ da Glamurosa" /><img
+        <img src="assets/glamurosa-dj.jpeg" alt="DJ da festa Core X" /><img
           src="assets/glamurosa-girl.jpeg"
-          alt="Convidada da Glamurosa"
-        /><img src="assets/glamurosa-drink.jpeg" alt="Drink da Glamurosa" /><img
+          alt="Convidada da festa Core X"
+        /><img src="assets/glamurosa-drink.jpeg" alt="Drink da festa Core X" /><img
           src="assets/glamurosa-leque.jpeg"
-          alt="Leque da Glamurosa"
+          alt="Leque da festa Core X"
         />
       </section>
       <section class="faq-section" id="duvidas">
@@ -227,7 +230,7 @@
       </section>
     </main>
     <footer class="site-footer">
-      <span>© Core X · GLAMUROSA</span>
+      <span>© Core X</span>
       <span><a href="ingresso.html">Meu ingresso</a> · <a href="equipe.html">Área da equipe</a></span>
     </footer>
     <script src="js/api.js"></script>

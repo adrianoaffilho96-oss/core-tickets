@@ -28,6 +28,7 @@
         <div class="tabs" role="tablist">
           <button data-tab="painel">Painel</button>
           <button data-tab="checkin">Check-in</button>
+          <button data-tab="cortesias">Cortesias</button>
           <button data-tab="caixa">Caixa</button>
           <button data-tab="bar">Bar</button>
           <button data-tab="cozinha">Cozinha</button>
@@ -64,6 +65,20 @@
             </form>
             <div id="checkinMsg"></div>
             <div id="checkinResults" class="list"></div>
+          </div>
+        </div>
+
+        <div class="tab" id="tab-cortesias">
+          <div class="panel narrow">
+            <h3>Emitir cortesia</h3>
+            <p class="muted">Ingresso gratuito, já confirmado e com QR de entrada. Envie o link gerado para o convidado.</p>
+            <form id="courtesyForm" class="stack">
+              <label>Nome completo<input id="courtesyName" required minlength="3" maxlength="120" /></label>
+              <label>E-mail<input id="courtesyEmail" type="email" required /></label>
+              <label>CPF<input id="courtesyCpf" inputmode="numeric" required /></label>
+              <button class="primary-button" type="submit">Emitir cortesia</button>
+            </form>
+            <div id="courtesyMsg"></div>
           </div>
         </div>
 

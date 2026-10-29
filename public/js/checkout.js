@@ -9,7 +9,7 @@ maskCpf(document.getElementById('buyerCpf'));
 function renderLot(lot) {
   const remaining = lot.quantity_total - lot.quantity_sold,
     sold = remaining <= 0,
-    detail = lot.category === 'camarote' ? `${esc(lot.sector_label || 'Camarote')} · até ${lot.capacity} pessoas` : 'Acesso ao evento',
+    detail = 'Acesso ao evento',
     stock = sold ? 'Esgotado' : remaining <= 20 ? `Últimos ${remaining}` : 'Disponível';
   return `<button type="button" class="ticket-option" data-ticket-id="${esc(lot.id)}" ${sold ? 'disabled' : ''}><span class="ticket-option-main"><strong>${esc(lot.label)}</strong><small>${detail}</small></span><span class="ticket-option-side"><b>${formatCurrency(lot.price)}</b><small>${stock}</small></span><span class="ticket-option-check">✓</span></button>`;
 }
@@ -22,16 +22,10 @@ function selectLot(id) {
 async function loadTicketTypes() {
   try {
     const lots = await apiRequest('/ticket-types');
-    const groups = [
-      ['Ingressos', lots.filter((l) => l.category !== 'camarote')],
-      ['Camarotes', lots.filter((l) => l.category === 'camarote')],
-    ].filter(([, items]) => items.length);
-    ticketList.innerHTML = groups
-      .map(([title, items]) => `<p class="ticket-group-title">${title}</p>${items.map(renderLot).join('')}`)
-      .join('');
+    ticketList.innerHTML = lots.length ? `<p class="ticket-group-title">Ingressos</p>${lots.map(renderLot).join('')}` : '';
     ticketList.querySelectorAll('.ticket-option:not(:disabled)').forEach((option) => option.addEventListener('click', () => selectLot(option.dataset.ticketId)));
     const available = (lot) => lot.quantity_sold < lot.quantity_total;
-    const first = lots.find((lot) => lot.category !== 'camarote' && available(lot)) || lots.find(available);
+    const first = lots.find(available);
     if (first) selectLot(first.id);
     else showMsg(ticketMsg, 'error', 'Todos os ingressos estão esgotados.');
   } catch (err) {

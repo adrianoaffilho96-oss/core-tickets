@@ -15,7 +15,7 @@ router.get('/config', (req, res) => {
 router.get('/ticket-types', (req, res) => {
   const lots = db
     .prepare(
-      'SELECT id,category,label,price,capacity,sector_label,quantity_total,quantity_sold FROM ticket_lots WHERE active=1 ORDER BY category,price',
+      "SELECT id,category,label,price,capacity,sector_label,quantity_total,quantity_sold FROM ticket_lots WHERE active=1 AND category<>'cortesia' ORDER BY category,price",
     )
     .all();
   res.json(lots);
@@ -25,7 +25,8 @@ router.post(
   '/tickets',
   asyncRoute(async (req, res) => {
     const { lotId, buyerName, buyerEmail, buyerCpf, method } = req.body || {};
-    const lot = db.prepare('SELECT * FROM ticket_lots WHERE id=? AND active=1').get(lotId);
+    // Cortesia so pode ser emitida pela equipe.
+    const lot = db.prepare("SELECT * FROM ticket_lots WHERE id=? AND active=1 AND category<>'cortesia'").get(lotId);
     if (!lot) return res.status(400).json({ error: 'Ingresso/lote invalido.' });
     if (lot.quantity_sold >= lot.quantity_total) return res.status(409).json({ error: 'Esse lote esta esgotado.' });
     const name = String(buyerName || '').trim();

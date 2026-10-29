@@ -55,7 +55,7 @@ function openTab(name) {
   document.querySelectorAll('.tabs button').forEach((b) => b.classList.toggle('active', b.dataset.tab === name));
   document.querySelectorAll('.tab').forEach((t) => (t.hidden = t.id !== `tab-${name}`));
   clearInterval(kitchenTimer);
-  ({ painel: loadPanel, checkin: () => $('checkinQuery').focus(), caixa: () => $('walletQuery').focus(), bar: loadProducts, cozinha: startKitchen, config: loadConfig })[name]();
+  ({ painel: loadPanel, checkin: () => $('checkinQuery').focus(), cortesias: () => $('courtesyName').focus(), caixa: () => $('walletQuery').focus(), bar: loadProducts, cozinha: startKitchen, config: loadConfig })[name]();
 }
 
 // ---------- Painel ----------
@@ -271,6 +271,22 @@ async function loadKitchen() {
   });
 }
 
+// ---------- Cortesias ----------
+maskCpf($('courtesyCpf'));
+$('courtesyForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  showMsg($('courtesyMsg'));
+  guard(async () => {
+    const r = await staff('/backoffice/cortesias', {
+      method: 'POST',
+      body: JSON.stringify({ buyerName: $('courtesyName').value, buyerEmail: $('courtesyEmail').value, buyerCpf: $('courtesyCpf').value }),
+    });
+    const link = `${location.origin}/ingresso.html?id=${encodeURIComponent(r.ticketId)}`;
+    $('courtesyMsg').innerHTML = `<div class="msg success">Cortesia emitida para ${esc($('courtesyName').value)}. Envie este link ao convidado:</div><div class="copy-row"><input readonly value="${esc(link)}" /><a class="secondary-button" href="${esc(link)}" target="_blank" rel="noopener">Abrir</a></div>`;
+    $('courtesyForm').reset();
+  }, $('courtesyMsg'));
+});
+
 // ---------- Lotes e produtos ----------
 async function loadConfig() {
   await guard(async () => {
@@ -280,7 +296,7 @@ async function loadConfig() {
       lots
         .map(
           (l) =>
-            `<tr data-lot="${esc(l.id)}"><td>${esc(l.label)}</td><td><input type="number" step="0.01" min="0.01" name="price" value="${l.price}"></td><td>${l.quantity_sold}</td><td><input type="number" min="${l.quantity_sold}" name="quantityTotal" value="${l.quantity_total}"></td><td><input type="checkbox" name="active" ${l.active ? 'checked' : ''}></td><td><button class="secondary-button">Salvar</button></td></tr>`,
+            `<tr data-lot="${esc(l.id)}"><td>${esc(l.label)}</td><td>${l.category === 'cortesia' ? 'Grátis' : `<input type="number" step="0.01" min="0.01" name="price" value="${l.price}">`}</td><td>${l.quantity_sold}</td><td><input type="number" min="${l.quantity_sold}" name="quantityTotal" value="${l.quantity_total}"></td><td><input type="checkbox" name="active" ${l.active ? 'checked' : ''}></td><td><button class="secondary-button">Salvar</button></td></tr>`,
         )
         .join('') +
       '</tbody>';
@@ -298,7 +314,10 @@ async function loadConfig() {
         row.querySelector('button').onclick = () =>
           guard(async () => {
             const body = { active: row.querySelector('[name=active]').checked };
-            fields.forEach((f) => (body[f] = Number(row.querySelector(`[name=${f}]`).value)));
+            fields.forEach((f) => {
+              const input = row.querySelector(`[name=${f}]`);
+              if (input) body[f] = Number(input.value);
+            });
             await staff(`${path}/${encodeURIComponent(row.dataset[attr])}`, { method: 'PATCH', body: JSON.stringify(body) });
             showMsg($('configMsg'), 'success', 'Alterações salvas.');
           }, $('configMsg'));

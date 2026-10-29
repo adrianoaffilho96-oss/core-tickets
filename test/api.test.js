@@ -47,7 +47,7 @@ test('rotas da equipe exigem login', async () => {
 });
 
 test('fluxo completo: compra, pagamento, recarga, bar e check-in', async () => {
-  const lot = (await api('GET', '/ticket-types')).body.find((l) => l.label === 'Ingresso Pista');
+  const lot = (await api('GET', '/ticket-types')).body.find((l) => l.label === '1º lote');
   const created = await api('POST', '/tickets', { ...buyer, lotId: lot.id });
   assert.equal(created.status, 201);
   const id = created.body.ticketId;
@@ -83,7 +83,8 @@ test('fluxo completo: compra, pagamento, recarga, bar e check-in', async () => {
 test('pagamento vencido devolve o ingresso ao estoque', async () => {
   const db = require('../backend/db');
   const payments = require('../backend/payments');
-  const lot = (await api('GET', '/ticket-types')).body.find((l) => l.label === 'Camarote B - Mesa 1');
+  const lot = (await api('GET', '/ticket-types')).body.find((l) => l.label === '3º lote');
+  assert.equal((await api('PATCH', `/equipe/backoffice/lots/${lot.id}`, { quantityTotal: 1 }, true)).status, 200);
   const created = await api('POST', '/tickets', { ...buyer, lotId: lot.id });
   assert.equal(created.status, 201);
   // Lote com 1 unidade: segunda compra deve falhar enquanto a primeira esta reservada
@@ -93,6 +94,28 @@ test('pagamento vencido devolve o ingresso ao estoque', async () => {
   await payments.expireOverdue();
   assert.equal((await api('GET', `/tickets/${created.body.ticketId}`)).body.ticket.status, 'expirado');
   assert.equal((await api('POST', '/tickets', { ...buyer, lotId: lot.id })).status, 201);
+});
+
+test('vitrine mostra so os 3 lotes e cortesia e emitida apenas pela equipe', async () => {
+  const lots = (await api('GET', '/ticket-types')).body;
+  assert.deepEqual(lots.map((l) => l.label), ['1º lote', '2º lote', '3º lote']);
+  const cortesia = (await api('GET', '/equipe/backoffice/lots', null, true)).body.find((l) => l.category === 'cortesia');
+  assert.equal(cortesia.price, 0);
+  // Compra publica da cortesia e recusada
+  assert.equal((await api('POST', '/tickets', { ...buyer, lotId: cortesia.id })).status, 400);
+  // Sem login nao emite
+  assert.equal((await api('POST', '/equipe/backoffice/cortesias', buyer)).status, 401);
+
+  const issued = await api('POST', '/equipe/backoffice/cortesias', buyer, true);
+  assert.equal(issued.status, 201);
+  const t = (await api('GET', `/tickets/${issued.body.ticketId}`)).body;
+  assert.equal(t.ticket.status, 'pago');
+  assert.equal(t.ticket.price, 0);
+  assert.ok(t.wallet.code);
+  assert.ok(t.entryQr);
+  // Preco da cortesia nao muda
+  await api('PATCH', `/equipe/backoffice/lots/${cortesia.id}`, { price: 50 }, true);
+  assert.equal((await api('GET', '/equipe/backoffice/lots', null, true)).body.find((l) => l.id === cortesia.id).price, 0);
 });
 
 test('simulacao de pagamento nao existe para ingresso inexistente', async () => {

@@ -1,7 +1,8 @@
 // Painel administrativo (rotas montadas em /api/equipe, exigem login).
 const express = require('express');
 const db = require('../db');
-const { money } = require('../util');
+const payments = require('../payments');
+const { money, onlyDigits, isValidCpf, isValidEmail, asyncRoute } = require('../util');
 
 const router = express.Router();
 const value = (sql) => db.prepare(sql).get().v;
@@ -51,7 +52,8 @@ router.patch('/backoffice/lots/:id', (req, res) => {
   const lot = db.prepare('SELECT * FROM ticket_lots WHERE id=?').get(req.params.id);
   if (!lot) return res.status(404).json({ error: 'Lote nao encontrado.' });
   const { price, quantityTotal, active } = req.body || {};
-  const newPrice = price === undefined ? lot.price : money(price);
+  // Cortesia e sempre gratuita.
+  const newPrice = price === undefined || lot.category === 'cortesia' ? lot.price : money(price);
   const newTotal = quantityTotal === undefined ? lot.quantity_total : Number(quantityTotal);
   if (newPrice === null) return res.status(400).json({ error: 'Preco invalido.' });
   if (!Number.isInteger(newTotal) || newTotal < lot.quantity_sold) {
@@ -61,6 +63,24 @@ router.patch('/backoffice/lots/:id', (req, res) => {
   db.prepare('UPDATE ticket_lots SET price=?, quantity_total=?, active=? WHERE id=?').run(newPrice, newTotal, newActive, lot.id);
   res.json(db.prepare('SELECT * FROM ticket_lots WHERE id=?').get(lot.id));
 });
+
+router.post(
+  '/backoffice/cortesias',
+  asyncRoute(async (req, res) => {
+    const { buyerName, buyerEmail, buyerCpf } = req.body || {};
+    const lot = db.prepare("SELECT * FROM ticket_lots WHERE category='cortesia' AND active=1 ORDER BY rowid LIMIT 1").get();
+    if (!lot) return res.status(409).json({ error: 'Cortesias desativadas. Ative em Lotes e produtos.' });
+    const name = String(buyerName || '').trim();
+    if (name.length < 3 || name.length > 120) return res.status(400).json({ error: 'Informe o nome completo do convidado.' });
+    if (!isValidEmail(buyerEmail)) return res.status(400).json({ error: 'Informe um e-mail valido.' });
+    if (!isValidCpf(buyerCpf)) return res.status(400).json({ error: 'CPF invalido.' });
+    const result = await payments.issueCourtesy({
+      lot,
+      buyer: { name, email: String(buyerEmail).trim().toLowerCase(), cpf: onlyDigits(buyerCpf) },
+    });
+    res.status(201).json(result);
+  }),
+);
 
 router.get('/backoffice/products', (req, res) => {
   res.json(db.prepare('SELECT * FROM products ORDER BY category,name').all());
