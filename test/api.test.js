@@ -83,12 +83,17 @@ test('fluxo completo: compra, pagamento, recarga, bar e check-in', async () => {
 test('pagamento vencido devolve o ingresso ao estoque', async () => {
   const db = require('../backend/db');
   const payments = require('../backend/payments');
-  const lot = (await api('GET', '/ticket-types')).body.find((l) => l.label === '3º lote');
-  assert.equal((await api('PATCH', `/equipe/backoffice/lots/${lot.id}`, { quantityTotal: 1 }, true)).status, 200);
+  // Lote atual com so 1 vaga livre: ao reservar, ele esgota e o proximo abre (virada automatica)
+  const lot = (await api('GET', '/ticket-types')).body.find((l) => l.status === 'disponivel');
+  assert.equal(lot.label, '1º lote');
+  assert.equal((await api('PATCH', `/equipe/backoffice/lots/${lot.id}`, { quantityTotal: lot.quantity_sold + 1 }, true)).status, 200);
   const created = await api('POST', '/tickets', { ...buyer, lotId: lot.id });
   assert.equal(created.status, 201);
-  // Lote com 1 unidade: segunda compra deve falhar enquanto a primeira esta reservada
   assert.equal((await api('POST', '/tickets', { ...buyer, lotId: lot.id })).status, 409);
+  const lots = (await api('GET', '/ticket-types')).body;
+  assert.deepEqual(lots.map((l) => l.status), ['esgotado', 'disponivel', 'em_breve']);
+  // 3o lote nao pode ser comprado antes da hora
+  assert.equal((await api('POST', '/tickets', { ...buyer, lotId: lots[2].id })).status, 409);
 
   db.prepare('UPDATE payments SET expires_at=? WHERE id=?').run(new Date(Date.now() - 1000).toISOString(), created.body.paymentId);
   await payments.expireOverdue();

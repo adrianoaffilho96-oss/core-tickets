@@ -8,10 +8,10 @@ maskCpf(document.getElementById('buyerCpf'));
 
 function renderLot(lot) {
   const remaining = lot.quantity_total - lot.quantity_sold,
-    sold = remaining <= 0,
-    detail = 'Acesso ao evento',
-    stock = sold ? 'Esgotado' : remaining <= 20 ? `Últimos ${remaining}` : 'Disponível';
-  return `<button type="button" class="ticket-option" data-ticket-id="${esc(lot.id)}" ${sold ? 'disabled' : ''}><span class="ticket-option-main"><strong>${esc(lot.label)}</strong><small>${detail}</small></span><span class="ticket-option-side"><b>${formatCurrency(lot.price)}</b><small>${stock}</small></span><span class="ticket-option-check">✓</span></button>`;
+    open = lot.status === 'disponivel',
+    detail = open ? 'Acesso ao evento' : lot.status === 'esgotado' ? 'Lote encerrado' : 'Abre quando o lote anterior esgotar',
+    stock = lot.status === 'esgotado' ? 'Esgotado' : !open ? 'Em breve' : remaining <= 20 ? `Últimos ${remaining}` : 'Disponível';
+  return `<button type="button" class="ticket-option" data-ticket-id="${esc(lot.id)}" ${open ? '' : 'disabled'}><span class="ticket-option-main"><strong>${esc(lot.label)}</strong><small>${detail}</small></span><span class="ticket-option-side"><b>${formatCurrency(lot.price)}</b><small>${stock}</small></span><span class="ticket-option-check">✓</span></button>`;
 }
 
 function selectLot(id) {
@@ -24,8 +24,7 @@ async function loadTicketTypes() {
     const lots = await apiRequest('/ticket-types');
     ticketList.innerHTML = lots.length ? `<p class="ticket-group-title">Ingressos</p>${lots.map(renderLot).join('')}` : '';
     ticketList.querySelectorAll('.ticket-option:not(:disabled)').forEach((option) => option.addEventListener('click', () => selectLot(option.dataset.ticketId)));
-    const available = (lot) => lot.quantity_sold < lot.quantity_total;
-    const first = lots.find(available);
+    const first = lots.find((lot) => lot.status === 'disponivel');
     if (first) selectLot(first.id);
     else showMsg(ticketMsg, 'error', 'Todos os ingressos estão esgotados.');
   } catch (err) {

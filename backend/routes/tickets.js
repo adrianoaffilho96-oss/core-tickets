@@ -12,13 +12,23 @@ router.get('/config', (req, res) => {
   res.json({ paymentMode: gateway.mode, expirationMinutes: payments.EXPIRATION_MINUTES });
 });
 
-router.get('/ticket-types', (req, res) => {
+// Lotes publicos em ordem de virada: so o primeiro com estoque fica a venda;
+// os anteriores aparecem esgotados e os seguintes "em breve".
+function publicLots() {
   const lots = db
     .prepare(
-      "SELECT id,category,label,price,capacity,sector_label,quantity_total,quantity_sold FROM ticket_lots WHERE active=1 AND category<>'cortesia' ORDER BY category,price",
+      "SELECT id,category,label,price,capacity,sector_label,quantity_total,quantity_sold FROM ticket_lots WHERE active=1 AND category<>'cortesia' ORDER BY price,rowid",
     )
     .all();
-  res.json(lots);
+  const current = lots.find((l) => l.quantity_sold < l.quantity_total);
+  return lots.map((l) => ({
+    ...l,
+    status: l === current ? 'disponivel' : l.quantity_sold >= l.quantity_total ? 'esgotado' : 'em_breve',
+  }));
+}
+
+router.get('/ticket-types', (req, res) => {
+  res.json(publicLots());
 });
 
 router.post(
@@ -29,6 +39,9 @@ router.post(
     const lot = db.prepare("SELECT * FROM ticket_lots WHERE id=? AND active=1 AND category<>'cortesia'").get(lotId);
     if (!lot) return res.status(400).json({ error: 'Ingresso/lote invalido.' });
     if (lot.quantity_sold >= lot.quantity_total) return res.status(409).json({ error: 'Esse lote esta esgotado.' });
+    if (publicLots().find((l) => l.id === lot.id)?.status !== 'disponivel') {
+      return res.status(409).json({ error: 'Esse lote ainda nao esta a venda.' });
+    }
     const name = String(buyerName || '').trim();
     if (name.length < 3 || name.length > 120) return res.status(400).json({ error: 'Informe seu nome completo.' });
     if (!isValidEmail(buyerEmail)) return res.status(400).json({ error: 'Informe um e-mail valido.' });
